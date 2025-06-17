@@ -12,17 +12,17 @@ from .wsi import (
 )
 
 
-def sort_coordinates_with_tissue(coordinates, tissue_percentages):
+def sort_coordinates_with_tissue(coordinates, tissue_ratios):
     # mock region filenames
     mocked_filenames = [f"{x}_{y}.jpg" for x, y in coordinates]
-    # combine mocked filenames with coordinates and tissue percentages
-    combined = list(zip(mocked_filenames, coordinates, tissue_percentages))
+    # combine mocked filenames with coordinates and tissue ratios
+    combined = list(zip(mocked_filenames, coordinates, tissue_ratios))
     # sort combined list by mocked filenames
     sorted_combined = sorted(combined, key=lambda x: x[0])
-    # extract sorted coordinates and tissue percentages
+    # extract sorted coordinates and tissue ratios
     sorted_coordinates = [coord for _, coord, _ in sorted_combined]
-    sorted_tissue_percentages = [tissue for _, _, tissue in sorted_combined]
-    return sorted_coordinates, sorted_tissue_percentages
+    sorted_tissue_ratios = [tissue for _, _, tissue in sorted_combined]
+    return sorted_coordinates, sorted_tissue_ratios
 
 
 def extract_coordinates(
@@ -33,8 +33,7 @@ def extract_coordinates(
     segment_params: SegmentationParameters,
     tiling_params: TilingParameters,
     filter_params: FilterParameters,
-    # mask_visu_path: Path | None = None,
-    mask_visu_path: Path = None,
+    mask_visu_path: Path | None = None,
     num_workers: int = 1,
 ):
     wsi = WholeSlideImage(
@@ -51,13 +50,13 @@ def extract_coordinates(
         contours,
         holes,
         coordinates,
-        tissue_percentages,
+        tissue_ratios,
         tile_level,
         resize_factor,
         tile_size_lv0,
     ) = wsi.get_tile_coordinates(tiling_params, filter_params, num_workers=num_workers)
     sorted_coordinates, _ = sort_coordinates_with_tissue(
-        coordinates, tissue_percentages
+        coordinates, tissue_ratios
     )
     if mask_visu_path is not None:
         wsi.visualize_mask(contours, holes).save(mask_visu_path)
@@ -126,8 +125,7 @@ def draw_grid_from_coordinates(
     tile_size_at_0,
     vis_level: int,
     thickness: int = 2,
-    # indices: list[int] | None = None,
-    indices: list[int] = None,
+    indices: list[int] | None = None,
 ):
     downsamples = wsi.level_downsamples[vis_level]
     if indices is None:
@@ -252,5 +250,5 @@ def visualize_coordinates(
         thickness=grid_thickness,
     )
     wsi_name = wsi_path.stem.replace(" ", "_")
-    visu_path = Path(save_dir, f"{wsi_name}.jpg")
+    visu_path = Path(save_dir, f"{wsi_name}.png")
     canvas.save(visu_path)

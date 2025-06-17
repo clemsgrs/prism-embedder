@@ -53,7 +53,7 @@ class TilingParameters(NamedTuple):
     tolerance: float  # for matching the spacing, deciding how much spacing can deviate from those specified in the slide metadata.
     tile_size: int  # size of the tiles to extract, in pixels
     overlap: float  # overlap between tiles
-    min_tissue_percentage: float  # minimum tissue percentage required for a tile
+    min_tissue_ratio: float  # minimum tissue ratio required for a tile
     drop_holes: bool  # whether to drop tiles that fall within holes
     use_padding: bool  # whether to use padding for tiles at the edges
 
@@ -470,7 +470,7 @@ class WholeSlideImage(object):
                 - tile_size (int): Desired size of the tiles at the target spacing.
                 - overlap (float, optional): Overlap between adjacent tiles. Defaults to 0.0.
                 - "drop_holes" (bool): If True, tiles falling within a hole will be excluded. Defaults to False.
-                - "min_tissue_percentage" (float): Minimum amount pixels covered with tissue required for a tile. Defaults to 0.25 (25 percent).
+                - "min_tissue_ratio" (float): Minimum amount pixels covered with tissue required for a tile. Defaults to 0.25 (25 percent).
                 - "use_padding" (bool): Whether to use padding for tiles at the edges. Defaults to True.
             filter_params (NamedTuple): Parameters for filtering contours, including:
                 - "ref_tile_size" (int): Reference tile size for filtering. Defaults to 256.
@@ -483,7 +483,7 @@ class WholeSlideImage(object):
         Returns:
             tuple:
                 - tile_coordinates (list[tuple[int, int]]): List of (x, y) coordinates for the extracted tiles.
-                - tissue_percentages (list[float]): List of tissue percentages for each tile.
+                - tissue_ratios (list[float]): List of tissue ratios for each tile.
                 - tile_level (int): Level of the wsi used for tile extraction.
                 - resize_factor (float): The factor by which the tile size was resized.
                 - tile_size_lv0 (int): The tile size at level 0 of the wsi pyramid.
@@ -499,7 +499,7 @@ class WholeSlideImage(object):
         (
             running_x_coords,
             running_y_coords,
-            tissue_percentages,
+            tissue_ratios,
             tile_level,
             resize_factor,
         ) = self.process_contours(
@@ -510,7 +510,7 @@ class WholeSlideImage(object):
             tile_size=tiling_params.tile_size,
             overlap=tiling_params.overlap,
             drop_holes=tiling_params.drop_holes,
-            min_tissue_percentage=tiling_params.min_tissue_percentage,
+            min_tissue_ratio=tiling_params.min_tissue_ratio,
             use_padding=tiling_params.use_padding,
             num_workers=num_workers,
         )
@@ -519,7 +519,7 @@ class WholeSlideImage(object):
             contours,
             holes,
             tile_coordinates,
-            tissue_percentages,
+            tissue_ratios,
             tile_level,
             resize_factor,
             tile_size_lv0,
@@ -667,9 +667,9 @@ class WholeSlideImage(object):
 
         Args:
             cont_check_fn (callable): A function that checks if a tile is within contours.
-                It should accept a (x,y) coordinates as input and return a tuple (keep_flag, tissue_pct),
+                It should accept a (x,y) coordinates as input and return a tuple (keep_flag, tissue_ratio),
                 where `keep_flag` is a boolean indicating if the tile is within contours,
-                and `tissue_pct` is the percentage of tissue coverage of the tile.
+                and `tissue_ratio` is the ratio of tissue coverage of the tile.
             pt (tuple): The (x, y) coordinates of the top-left corner of the tile to check.
             holes (list, optional): A list of holes (e.g., regions to exclude) to check against.
                 Defaults to None.
@@ -679,18 +679,18 @@ class WholeSlideImage(object):
                 Defaults to 256.
 
         Returns:
-            tuple: A tuple (keep_flag, tissue_pct), where:
+            tuple: A tuple (keep_flag, tissue_ratio), where:
                 - `keep_flag` is 1 if the tile is within contours and not in holes (if applicable),
                   otherwise 0.
-                - `tissue_pct` is the percentage of tissue coverage of the tile.
+                - `tissue_ratio` is the ratio of tissue coverage of the tile.
         """
-        keep_flag, tissue_pct = cont_check_fn(pt)
+        keep_flag, tissue_ratio = cont_check_fn(pt)
         if keep_flag:
             if holes is not None and drop_holes:
-                return not WholeSlideImage.isInHoles(holes, pt, tile_size), tissue_pct
+                return not WholeSlideImage.isInHoles(holes, pt, tile_size), tissue_ratio
             else:
-                return 1, tissue_pct
-        return 0, tissue_pct
+                return 1, tissue_ratio
+        return 0, tissue_ratio
 
     @staticmethod
     def scaleContourDim(contours, scale):
@@ -736,13 +736,13 @@ class WholeSlideImage(object):
         tile_size: int,
         overlap: float,
         drop_holes: bool,
-        min_tissue_percentage: float,
+        min_tissue_ratio: float,
         use_padding: bool,
         num_workers: int = 1,
     ):
         """
         Processes a list of contours and their corresponding holes to generate tile coordinates,
-        tissue percentages, and other metadata.
+        tissue ratios, and other metadata.
 
         Args:
             contours (list): List of contours representing tissue blobs in the wsi.
@@ -753,7 +753,7 @@ class WholeSlideImage(object):
             tile_size (int): Desired tile size in pixels.
             overlap (float): Overlap between adjacent tiles.
             drop_holes (bool): Whether to drop tiles that fall within holes.
-            min_tissue_percentage (float): Minimum amount pixels covered with tissue required for a tile.
+            min_tissue_ratio (float): Minimum amount pixels covered with tissue required for a tile.
             use_padding (bool): Whether to pad the tiles to ensure full coverage.
             num_workers (int, optional): Number of workers to use for parallel processing. Defaults to 1.
 
@@ -761,12 +761,12 @@ class WholeSlideImage(object):
             tuple: A tuple containing:
                 - running_x_coords (list): The x-coordinates of the extracted tiles.
                 - running_y_coords (list): The y-coordinates of the extracted tiles.
-                - running_tissue_pct (list): List of tissue percentages for each extracted tile.
+                - running_tissue_ratio (list): List of tissue ratios for each extracted tile.
                 - tile_level (int): Level of the wsi used for tile extraction.
                 - resize_factor (float): The factor by which the tile size was resized.
         """
         running_x_coords, running_y_coords = [], []
-        running_tissue_pct = []
+        running_tissue_ratio = []
         tile_level = None
         resize_factor = None
 
@@ -779,7 +779,7 @@ class WholeSlideImage(object):
                 tile_size,
                 overlap,
                 drop_holes,
-                min_tissue_percentage,
+                min_tissue_ratio,
                 use_padding,
             )
 
@@ -798,7 +798,7 @@ class WholeSlideImage(object):
         for (
             x_coords,
             y_coords,
-            tissue_pct,
+            tissue_ratio,
             cont_tile_level,
             cont_resize_factor,
         ) in results:
@@ -811,12 +811,12 @@ class WholeSlideImage(object):
                 resize_factor = cont_resize_factor
                 running_x_coords.extend(x_coords)
                 running_y_coords.extend(y_coords)
-                running_tissue_pct.extend(tissue_pct)
+                running_tissue_ratio.extend(tissue_ratio)
 
         return (
             running_x_coords,
             running_y_coords,
-            running_tissue_pct,
+            running_tissue_ratio,
             tile_level,
             resize_factor,
         )
@@ -830,7 +830,7 @@ class WholeSlideImage(object):
         tile_size: int,
         overlap: float,
         drop_holes: bool,
-        min_tissue_percentage: float,
+        min_tissue_ratio: float,
         use_padding: bool,
     ):
         """
@@ -845,14 +845,14 @@ class WholeSlideImage(object):
             tile_size (int): Size of the tiles in pixels.
             overlap (float): Overlap between tiles.
             drop_holes (bool): Whether to drop tiles that fall within holes.
-            min_tissue_percentage (float): Minimum amount pixels covered with tissue required for a tile.
+            min_tissue_ratio (float): Minimum amount pixels covered with tissue required for a tile.
             use_padding (bool): Whether to pad the image to ensure full coverage.
 
         Returns:
             tuple: A tuple containing:
                 - x_coords (list): List of x-coordinates for each tile.
                 - y_coords (list): List of y-coordinates for each tile.
-                - filtered_tissue_percentages (list): List of tissue percentages for each tile.
+                - filtered_tissue_ratios (list): List of tissue ratios for each tile.
                 - tile_level (int): Level of the image used for tile extraction.
                 - resize_factor (float): The factor by which the tile size was resized.
         """
@@ -907,7 +907,7 @@ class WholeSlideImage(object):
             tissue_mask=self.binary_mask,
             tile_size=ref_tile_size[0],
             scale=scale,
-            pct=min_tissue_percentage,
+            ratio=min_tissue_ratio,
         )
 
         ref_step_size_x = int(round(step_size * tile_downsample[0], 0))
@@ -921,7 +921,7 @@ class WholeSlideImage(object):
         ).transpose()
 
         # vectorized processing of coordinates using the tissue_checker
-        keep_flags, tissue_pcts = tissue_checker.check_coordinates(coord_candidates)
+        keep_flags, tissue_ratios = tissue_checker.check_coordinates(coord_candidates)
 
         if drop_holes:
             keep_flags = [
@@ -930,7 +930,7 @@ class WholeSlideImage(object):
             ]
 
         filtered_coordinates = coord_candidates[np.array(keep_flags) == 1]
-        filtered_tissue_percentages = np.array(tissue_pcts)[np.array(keep_flags) == 1]
+        filtered_tissue_ratios = np.array(tissue_ratios)[np.array(keep_flags) == 1]
 
         ntile = len(filtered_coordinates)
 
@@ -940,40 +940,10 @@ class WholeSlideImage(object):
             return (
                 x_coords,
                 y_coords,
-                filtered_tissue_percentages,
+                filtered_tissue_ratios,
                 tile_level,
                 resize_factor,
             )
 
         else:
             return [], [], [], None, None
-
-    @staticmethod
-    def process_coord_candidate(
-        coord, contour_holes, tile_size, cont_check_fn, drop_holes
-    ):
-        """
-        Processes a candidate coordinate to determine if it should be kept based on
-        its location relative to contours and the percentage of tissue it contains.
-
-        Args:
-            coord (tuple): (x, y) coordinate to be processed.
-            contour_holes (list): A list of contours and holes to check against.
-            tile_size (int): Size of the tile to consider.
-            cont_check_fn (callable): A function to check if the coordinate is within
-                the contours or holes.
-            drop_holes (bool): A flag indicating whether to drop tiles falling in holes during the check.
-
-        Returns:
-            tuple: A tuple containing:
-                - coord (tuple or None): Input coordinate if it passes the check,
-                otherwise None.
-                - tissue_pct (float): Percentage of tissue in the tile.
-        """
-        keep_flag, tissue_pct = WholeSlideImage.isInContours(
-            cont_check_fn, coord, contour_holes, drop_holes, tile_size
-        )
-        if keep_flag:
-            return coord, tissue_pct
-        else:
-            return None, tissue_pct

@@ -3,13 +3,13 @@ import numpy as np
 
 
 class HasEnoughTissue(object):
-    def __init__(self, contour, contour_holes, tissue_mask, tile_size, scale, pct=0.01):
+    def __init__(self, contour, contour_holes, tissue_mask, tile_size, scale, ratio=0.01):
         self.cont = contour
         self.holes = contour_holes
         self.mask = tissue_mask // 255
         self.tile_size = tile_size
         self.scale = scale
-        self.pct = pct
+        self.ratio = ratio
 
         # Precompute the combined tissue mask
         self.precomputed_mask = self._precompute_tissue_mask()
@@ -40,9 +40,9 @@ class HasEnoughTissue(object):
             pt (tuple): The (x, y) coordinates of the top-left corner of the tile.
 
         Returns:
-            tuple: (keep_flag, tissue_pct), where:
+            tuple: (keep_flag, tissue_ratio), where:
                 - keep_flag is 1 if the tile has enough tissue, otherwise 0.
-                - tissue_pct is the percentage of tissue in the tile.
+                - tissue_ratio is the ratio of tissue in the tile.
         """
         downsampled_tile_size = int(round(self.tile_size * 1 / self.scale[0], 0))
         assert (
@@ -59,12 +59,12 @@ class HasEnoughTissue(object):
 
         tile_area = downsampled_tile_size**2
         tissue_area = np.sum(sub_mask)
-        tissue_pct = round(tissue_area / tile_area, 3)
+        tissue_ratio = round(tissue_area / tile_area, 3)
 
-        if tissue_pct >= self.pct:
-            return 1, tissue_pct
+        if tissue_ratio >= self.ratio:
+            return 1, tissue_ratio
         else:
-            return 0, tissue_pct
+            return 0, tissue_ratio
 
     def check_coordinates(self, coords):
         """
@@ -74,9 +74,9 @@ class HasEnoughTissue(object):
             coords (np.ndarray): An array of shape (N, 2), where each row is (x, y).
 
         Returns:
-            tuple: (keep_flags, tissue_pcts), where:
+            tuple: (keep_flags, tissue_ratios), where:
                 - keep_flags is a list of 1s and 0s indicating whether each tile has enough tissue.
-                - tissue_pcts is a list of tissue percentages for each tile.
+                - tissue_ratios is a list of tissue ratios for each tile.
         """
         downsampled_tile_size = int(round(self.tile_size * 1 / self.scale[0], 0))
         assert (
@@ -88,7 +88,7 @@ class HasEnoughTissue(object):
         downsampled_coords = downsampled_coords.astype(int)
 
         keep_flags = []
-        tissue_pcts = []
+        tissue_ratios = []
 
         for x_tile, y_tile in downsampled_coords:
             # Extract the sub-mask for the tile
@@ -99,13 +99,13 @@ class HasEnoughTissue(object):
 
             tile_area = downsampled_tile_size**2
             tissue_area = np.sum(sub_mask)
-            tissue_pct = round(tissue_area / tile_area, 3)
+            tissue_ratio = round(tissue_area / tile_area, 3)
 
-            if tissue_pct >= self.pct:
+            if tissue_ratio >= self.ratio:
                 keep_flags.append(1)
-                tissue_pcts.append(tissue_pct)
+                tissue_ratios.append(tissue_ratio)
             else:
                 keep_flags.append(0)
-                tissue_pcts.append(tissue_pct)
+                tissue_ratios.append(tissue_ratio)
 
-        return keep_flags, tissue_pcts
+        return keep_flags, tissue_ratios

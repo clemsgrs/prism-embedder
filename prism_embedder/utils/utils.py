@@ -98,9 +98,9 @@ def update_state_dict(model_dict, state_dict):
             missing_keys += 1
             missing_keys_list.append(model_key)
     # Log summary
-    msg = (
-        f"{success}/{len(model_dict)} weight(s) loaded successfully\n"
-        f"{shape_mismatch} weight(s) not loaded due to mismatching shapes: {shape_mismatch_list}\n"
-        f"{missing_keys} key(s) from checkpoint not found in model: {missing_keys_list}"
-    )
+    msg = f"{success}/{len(model_dict)} weight(s) loaded successfully"
+    if shape_mismatch_list:
+        msg += f"\n{shape_mismatch} weight(s) not loaded due to mismatching shapes: {shape_mismatch_list}"
+    if missing_keys_list:
+        msg += f"\n{missing_keys} key(s) from checkpoint not found in model: {missing_keys_list}"
     return updated_state_dict, msg
