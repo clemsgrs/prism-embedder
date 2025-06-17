@@ -1,0 +1,16 @@
+csv: "/input/wsi_mask_pairs.csv"
+
+output_dir: "/output"
+
+tiling:
+  params:
+    spacing: 0.5 # spacing at which to tile the slide, in microns per pixel
+    tile_size: 224 # size of the tiles to extract, in pixels
+
+model:
+  level: "slide"
+  name: "prism"
+  batch_size: 32
+
+speed:
+  fp16: true # use mixed precision during model inference
