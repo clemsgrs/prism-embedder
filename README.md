@@ -25,3 +25,9 @@ Alternatively, you can install `prism-embedder` via pip:
 ```shell
 pip install prism-embedder
 ```
+
+## TODO
+
+- [] save feature in `.json` compatible with GC interface
+- [] update interface slug based on new interface request (whole-slide image and whole-slide tiling visualization)
+- [] plot tSNE for a few slides to debug implementation
