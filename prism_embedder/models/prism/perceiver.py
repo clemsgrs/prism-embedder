@@ -11,7 +11,7 @@ from environs import Env
 from torch import Tensor, nn
 from torch.backends.cuda import sdp_kernel
 
-from unicorn_baseline.vision_language.prism.configuring_prism import PerceiverConfig
+from prism_embedder.models.prism.configuring_prism import PerceiverConfig
 
 env = Env()
 

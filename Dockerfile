@@ -57,7 +57,7 @@ RUN python -m pip install \
     --requirement /opt/app/requirements.in \
     && rm -rf /home/user/.cache/pip
 
-# install UNICORN baseline
+# install prism_embedder baseline
 COPY --chown=user:user prism_embedder /opt/app/prism_embedder
 COPY --chown=user:user LICENSE /opt/app/prism_embedder/
 COPY --chown=user:user setup.py /opt/app/prism_embedder/

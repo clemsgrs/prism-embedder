@@ -8,9 +8,9 @@ from transformers import PreTrainedModel
 from transformers.generation.utils import GenerateOutput
 from transformers.utils import add_start_docstrings, add_start_docstrings_to_model_forward
 
-from unicorn_baseline.vision_language.prism.biogpt import BioGPT
-from unicorn_baseline.vision_language.prism.configuring_prism import PrismConfig
-from unicorn_baseline.vision_language.prism.perceiver import PerceiverResampler
+from prism_embedder.models.prism.biogpt import BioGPT
+from prism_embedder.models.prism.configuring_prism import PrismConfig
+from prism_embedder.models.prism.perceiver import PerceiverResampler
 
 logger = logging.getLogger(__file__)
 

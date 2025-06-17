@@ -6,7 +6,7 @@ from pathlib import Path
 from transformers import BioGptTokenizer
 from transformers.models.biogpt.configuration_biogpt import BioGptConfig
 
-from unicorn_baseline.vision_language.prism.biogpt_hf import BioGptForCausalLM
+from prism_embedder.models.prism.biogpt_hf import BioGptForCausalLM
 
 
 class BioGPT(nn.Module):
