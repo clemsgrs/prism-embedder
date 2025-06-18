@@ -1,7 +1,6 @@
-import os
+import json
 import torch
 import random
-import subprocess
 import numpy as np
 import pandas as pd
 
@@ -16,27 +15,6 @@ def fix_random_seeds(seed=31):
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
     random.seed(seed)
-
-
-def get_sha():
-    cwd = os.path.dirname(os.path.abspath(__file__))
-
-    def _run(command):
-        return subprocess.check_output(command, cwd=cwd).decode("ascii").strip()
-
-    sha = "N/A"
-    diff = "clean"
-    branch = "N/A"
-    try:
-        sha = _run(["git", "rev-parse", "HEAD"])
-        subprocess.check_output(["git", "diff"], cwd=cwd)
-        diff = _run(["git", "diff-index", "HEAD"])
-        diff = "has uncommitted changes" if diff else "clean"
-        branch = _run(["git", "rev-parse", "--abbrev-ref", "HEAD"])
-    except Exception:
-        pass
-    message = f"sha: {sha}, status: {diff}, branch: {branch}"
-    return message
 
 
 def load_csv(cfg):
@@ -104,3 +82,25 @@ def update_state_dict(model_dict, state_dict):
     if missing_keys_list:
         msg += f"\n{missing_keys} key(s) from checkpoint not found in model: {missing_keys_list}"
     return updated_state_dict, msg
+
+
+def sanitize_json_content(obj):
+    if isinstance(obj, dict):
+        return {k: sanitize_json_content(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple, np.ndarray)):
+        return [sanitize_json_content(v) for v in obj]
+    elif isinstance(obj, (str, int, bool, float)):
+        return obj
+    elif isinstance(obj, (np.float16, np.float32, np.float64)):
+        return float(obj)
+    elif isinstance(obj, (np.uint8, np.uint16, np.uint32, np.uint64, np.int8, np.int16, np.int32, np.int64)):
+        return int(obj)
+    else:
+        return obj.__repr__()
+
+
+def write_json_file(*, location, content):
+    # Writes a json file with the sanitized content
+    content = sanitize_json_content(content)
+    with open(location, "w") as f:
+        f.write(json.dumps(content, indent=4))

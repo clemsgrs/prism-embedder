@@ -6,9 +6,10 @@ from pathlib import Path
 from omegaconf import OmegaConf
 
 import prism_embedder.distributed as distributed
-from prism_embedder.utils import fix_random_seeds, get_sha, setup_logging
+from prism_embedder.utils import fix_random_seeds, setup_logging
 from prism_embedder.configs import default_config
 
+OUTPUT_PATH = Path("/output")
 logger = logging.getLogger("prism_embedder")
 
 
@@ -38,12 +39,13 @@ def setup(config_file):
       - Creates the output directory.
     """
     cfg = get_cfg_from_file(config_file)
-    output_dir = Path(cfg.output_dir)
+    output_dir = OUTPUT_PATH
     if distributed.is_main_process():
         output_dir.mkdir(exist_ok=True, parents=True)
+    cfg.output_dir = str(output_dir)
 
     fix_random_seeds(0)
-    setup_logging(output=cfg.output_dir, level=logging.INFO)
+    setup_logging(output=output_dir, level=logging.INFO)
     return cfg
 
 

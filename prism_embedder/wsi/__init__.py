@@ -249,6 +249,5 @@ def visualize_coordinates(
         indices=None,
         thickness=grid_thickness,
     )
-    wsi_name = wsi_path.stem.replace(" ", "_")
-    visu_path = Path(save_dir, f"{wsi_name}.png")
+    visu_path = Path(save_dir, f"whole-slide-tiling-thumbnail.png")
     canvas.save(visu_path)

@@ -29,8 +29,7 @@ def process_slide(
     wsi_path: Path,
     mask_path: Path,
     cfg,
-    mask_visualize_dir,
-    tile_visualize_dir,
+    visualize_dir: Path,
     num_workers: int = 4,
 ):
     """
@@ -38,9 +37,6 @@ def process_slide(
     """
     wsi_name = wsi_path.stem.replace(" ", "_")
     try:
-        tissue_mask_visu_path = None
-        if cfg.visualize and mask_visualize_dir is not None:
-            tissue_mask_visu_path = Path(mask_visualize_dir, f"{wsi_name}.jpg")
         coordinates, tile_level, resize_factor, tile_size_lv0 = extract_coordinates(
             wsi_path=wsi_path,
             mask_path=mask_path,
@@ -48,7 +44,7 @@ def process_slide(
             tiling_params=cfg.tiling.params,
             segment_params=cfg.tiling.seg_params,
             filter_params=cfg.tiling.filter_params,
-            mask_visu_path=tissue_mask_visu_path,
+            mask_visu_path=None,
             num_workers=num_workers,
         )
         coordinates_dir = Path(cfg.output_dir, "coordinates")
@@ -62,12 +58,12 @@ def process_slide(
             tile_size_lv0=tile_size_lv0,
             save_path=coordinates_path,
         )
-        if cfg.visualize and tile_visualize_dir is not None:
+        if cfg.visualize and visualize_dir is not None:
             visualize_coordinates(
                 wsi_path=wsi_path,
                 coordinates=coordinates,
                 tile_size_lv0=tile_size_lv0,
-                save_dir=tile_visualize_dir,
+                save_dir=visualize_dir,
                 downsample=cfg.tiling.visu_params.downsample,
                 backend=cfg.tiling.backend,
             )
@@ -140,14 +136,9 @@ def main(args):
             # setup directories for coordinates and visualization
             coordinates_dir = Path(cfg.output_dir, "coordinates")
             coordinates_dir.mkdir(exist_ok=True, parents=True)
-            mask_visualize_dir = None
-            tile_visualize_dir = None
+            visualize_dir = None
             if cfg.visualize:
-                visualize_dir = Path(cfg.output_dir, "visualization")
-                mask_visualize_dir = Path(visualize_dir, "mask")
-                tile_visualize_dir = Path(visualize_dir, "tiling")
-                mask_visualize_dir.mkdir(exist_ok=True, parents=True)
-                tile_visualize_dir.mkdir(exist_ok=True, parents=True)
+                visualize_dir = Path(cfg.output_dir)
 
             tiling_updates = {}
             with mp.Pool(processes=parallel_workers) as pool:
@@ -156,8 +147,7 @@ def main(args):
                         "wsi_path": wsi_fp,
                         "mask_path": mask_fp,
                         "cfg": cfg,
-                        "mask_visualize_dir": mask_visualize_dir,
-                        "tile_visualize_dir": tile_visualize_dir,
+                        "visualize_dir": visualize_dir,
                         "num_workers": parallel_workers,
                     }
                     for wsi_fp, mask_fp in zip(

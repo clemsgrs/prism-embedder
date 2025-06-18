@@ -114,10 +114,10 @@ def main(args):
     cfg = setup(config_file)
 
     # generate csv from input folder
-    # whole slide will be located under /input/images/neural-image-ompression/<uuid>.tif
-    # tissue mask will be located under /input/images/tissue-mask/<uuid>.tif
+    # whole slide will be located under /input/images/whole-slide-image/<wsi-uuid>.tif
+    # tissue mask will be located under /input/images/tissue-mask/<mask-uuid>.tif
 
-    wsi_dir = INPUT_PATH / "images/neural-image-ompression"
+    wsi_dir = INPUT_PATH / "images/whole-slide-image"
     mask_dir = INPUT_PATH / "images/tissue-mask"
     csv_path = cfg.csv
 

@@ -15,7 +15,7 @@ from contextlib import nullcontext
 
 import prism_embedder.distributed as distributed
 
-from prism_embedder.utils import fix_random_seeds
+from prism_embedder.utils import fix_random_seeds, write_json_file
 from prism_embedder.utils.config import get_cfg_from_file
 from prism_embedder.models import PRISM
 
@@ -113,9 +113,16 @@ def main(args):
             with torch.inference_mode():
                 with autocast_context:
                     features = torch.load(feature_path).to(model.device)
-                    wsi_feature = model.forward(features)
+                    wsi_feature = model.forward(features).squeeze(0).cpu().tolist()
 
-            torch.save(wsi_feature, feature_path)
+            output_dict = [{"title": name, "features": wsi_feature}]
+            output_filename = cfg.output_dir / "image-neural-representation.json"
+            write_json_file(
+                location=output_filename,
+                content=output_dict,
+            )
+            print(f"Feature vector saved to {output_filename}")
+
             del wsi_feature
             torch.cuda.empty_cache()
             gc.collect()
