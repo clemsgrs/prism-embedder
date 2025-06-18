@@ -1,4 +1,4 @@
-csv: "/input/wsi_mask_pairs.csv"
+csv: "/tmp/wsi_mask_pairs.csv"
 
 output_dir: "/output"
 

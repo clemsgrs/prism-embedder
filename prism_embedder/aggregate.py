@@ -116,7 +116,7 @@ def main(args):
                     wsi_feature = model.forward(features).squeeze(0).cpu().tolist()
 
             output_dict = [{"title": name, "features": wsi_feature}]
-            output_filename = cfg.output_dir / "image-neural-representation.json"
+            output_filename = Path(cfg.output_dir) / "image-neural-representation.json"
             write_json_file(
                 location=output_filename,
                 content=output_dict,
