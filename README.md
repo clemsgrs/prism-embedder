@@ -18,24 +18,38 @@
 </p>
 
 ---
-
-## 🚀 Overview
+## 👁️ Overview
 
 **PRISM Embedder** is a containerized algorithm for computing slide-level representations from whole-slide images using [PRISM](https://huggingface.co/paige-ai/Prism).
 
 > ⚠️ **Access Required**  
 > This algorithm depends on the gated models **PRISM** and **Virchow**.  
-> Execution is only permitted for users who have been **explicitly verified** by the algorithm editor to have **requested and been granted** access to both.
+> You need to have **requested and been granted** access to both models on Hugging Face.
 
 
-## 🛠️ Installation & Usage
+## 🚀 Quickstart
 
 **Requirements:**  
 - Linux-based OS (e.g., Ubuntu 22.04)  
 - Python 3.10+  
 - Docker installed
 
-**Run with Docker:**
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/clemsgrs/prism-embedder.git
+cd prism-embedder
+```
+
+### 2. Download model weights
+
+Download the required model weights:
+
+```bash
+./download_weights.sh
+```
+
+### 3. Kick-off woth Docker
 
 > Replace `</path/to/your/slide.tif>` and `</path/to/your/mask.tif>` with your actual file paths.  
 > Replace `</path/to/your/output/folder>` with the path to a folder where you have **write access**.
@@ -45,6 +59,7 @@ docker pull waticlems/prism_embedder:latest
 docker run --rm -it \
     -v </path/to/your/slide.tif>:/input/images/whole-slide-image/slide.tif:ro \
     -v </path/to/your/mask.tif>:/input/images/tissue-mask/mask.tif:ro \
+    -v model:/opt/ml/model
     -v </path/to/your/output/folder>:/output \
     waticlems/prism_embedder:latest
 ```

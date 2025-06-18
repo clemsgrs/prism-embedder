@@ -1,3 +1,7 @@
+import warnings
+
+warnings.filterwarnings("ignore", category=FutureWarning)
+
 import os
 import sys
 import socket
@@ -141,7 +145,6 @@ def main(args):
 
 def run():
 
-    import warnings
     import torchvision
 
     torchvision.disable_beta_transforms_warning()
@@ -149,8 +152,6 @@ def run():
     warnings.filterwarnings("ignore", message=".*Could not set the permissions.*")
     warnings.filterwarnings("ignore", message=".*antialias.*", category=UserWarning)
     warnings.filterwarnings("ignore", message=".*TypedStorage.*", category=UserWarning)
-    warnings.filterwarnings("ignore", category=FutureWarning)
-    warnings.filterwarnings("ignore", message="The given NumPy array is not writable")
 
     # show GPU information
     _show_torch_cuda_info()
