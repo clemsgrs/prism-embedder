@@ -1,33 +1,60 @@
-# prism-embedder
+<h1 align="center">PRISM Embedder</h1>
 
-[![PyPI version](https://img.shields.io/pypi/v/prism-embedder?label=pypi&logo=pypi&color=3776AB)](https://pypi.org/project/prism-embedder/)
-[![Docker Version](https://img.shields.io/docker/v/waticlems/prism_embedder?sort=semver&label=docker&logo=docker&color=2496ED)](https://hub.docker.com/r/waticlems/prism_embedder)
+<p align="center">
+  <img src="prism-embedder-logo.png" alt="PRISM Embedder Logo" width="200"/>
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/prism-embedder/">
+    <img src="https://img.shields.io/pypi/v/prism-embedder?label=pypi&logo=pypi&color=3776AB" alt="PyPI version"/>
+  </a>
+  <a href="https://hub.docker.com/r/waticlems/prism_embedder">
+    <img src="https://img.shields.io/docker/v/waticlems/prism_embedder?sort=semver&label=docker&logo=docker&color=2496ED" alt="Docker version"/>
+  </a>
+</p>
+
+<p align="center">
+  Extract slide-level embeddings from whole-slide images using PRISM.
+</p>
+
+---
+
+## 🚀 Overview
+
+**PRISM Embedder** is a containerized algorithm for computing slide-level representations from whole-slide images using [PRISM](https://huggingface.co/paige-ai/Prism).
+
+> ⚠️ **Access Required**  
+> This algorithm depends on the gated models **PRISM** and **Virchow**.  
+> Execution is only permitted for users who have been **explicitly verified** by the algorithm editor to have **requested and been granted** access to both.
 
 
-## 🛠️ Installation
+## 🛠️ Installation & Usage
 
-System requirements: Linux-based OS (e.g., Ubuntu 22.04) with Python 3.10+ and Docker installed.
+**Requirements:**  
+- Linux-based OS (e.g., Ubuntu 22.04)  
+- Python 3.10+  
+- Docker installed
 
-We recommend running the script inside a container using the latest `prism_embedder` image from Docker Hub:
+**Run with Docker:**
 
-```shell
+> Replace `</path/to/your/slide.tif>` and `</path/to/your/mask.tif>` with your actual file paths.  
+> Replace `</path/to/your/output/folder>` with the path to a folder where you have **write access**.
+
+```bash
 docker pull waticlems/prism_embedder:latest
 docker run --rm -it \
-    -v /path/to/your/slide.tif:/input/images/whole-slide-image/slide.tif \
-    -v /path/to/your/mask.tif:/input/images/tissue-mask/mask.tif \
+    -v </path/to/your/slide.tif>:/input/images/whole-slide-image/slide.tif:ro \
+    -v </path/to/your/mask.tif>:/input/images/tissue-mask/mask.tif:ro \
+    -v </path/to/your/output/folder>:/output \
     waticlems/prism_embedder:latest
 ```
 
-Update the command with the path pointing to your slide & tissue mask.
+Upon execution, the following files will be saved in `/output`:
 
-Alternatively, you can install `prism-embedder` via pip:
+- `image-neural-representation.json`: 1280-dimensional slide-level embedding (JSON)
+- `whole-slide-tiling-thumbnail.png`: PNG image showing the tissue tiling layout
 
-```shell
-pip install prism-embedder
-```
+## 📌 TODO
 
-## TODO
-
-- [] save feature in `.json` compatible with GC interface
-- [] update interface slug based on new interface request (whole-slide image and whole-slide tiling visualization)
-- [] plot tSNE for a few slides to debug implementation
+- [ ] add tSNE plot
+- [ ] improve CLI customization (e.g., for spacing, resolution)
